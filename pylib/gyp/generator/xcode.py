@@ -119,7 +119,7 @@ class XcodeProject(object):
     projectDirPath = gyp.common.RelativePath(
                          os.path.dirname(os.path.abspath(self.gyp_path)),
                          os.path.dirname(path) or '.')
-    self.project.SetProperty('projectDirPath', projectDirPath)
+    self.project.SetProperty('projectDirPath', projectDirPath.replace("\\", "/"))
     self.project_file = \
         gyp.xcodeproj_file.XCProjectFile({'rootObject': self.project})
     self.build_file_dict = build_file_dict
