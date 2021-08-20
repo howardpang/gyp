@@ -34,6 +34,7 @@ from gyp.common import GetEnvironFallback
 from gyp.common import GypError
 
 import hashlib
+import posixpath
 
 generator_default_variables = {
   'EXECUTABLE_PREFIX': '',
@@ -874,7 +875,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
     # For consistency with other builders, put sub-project build output in the
     # sub-project dir (see test/subdirectory/gyptest-subdir-all.py).
     self.WriteLn('export builddir_name ?= %s' %
-                 os.path.join(os.path.dirname(output_filename), build_dir))
+                 posixpath.join(os.path.dirname(output_filename).replace("\\", "/"), build_dir))
     self.WriteLn('.PHONY: all')
     self.WriteLn('all:')
     if makefile_path:
@@ -1055,7 +1056,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
           output = re.sub(variables_with_spaces, '', output)
           assert ' ' not in output, (
               "Spaces in rule filenames not yet supported (%s)"  % output)
-        self.WriteLn('all_deps += %s' % ' '.join(outputs))
+        self.WriteLn('all_deps += %s' % ' '.join(outputs.replace("\\", "/")))
 
         action = [self.ExpandInputRoot(ac, rule_source_root,
                                        rule_source_dirname)
@@ -1415,13 +1416,13 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
     """Return the 'output' (full output path) to a bundle output directory."""
     assert self.is_mac_bundle
     path = generator_default_variables['PRODUCT_DIR']
-    return os.path.join(path, self.xcode_settings.GetWrapperName())
+    return posixpath.join(path, self.xcode_settings.GetWrapperName())
 
 
   def ComputeMacBundleBinaryOutput(self, spec):
     """Return the 'output' (full output path) to the binary in a bundle."""
     path = generator_default_variables['PRODUCT_DIR']
-    return os.path.join(path, self.xcode_settings.GetExecutablePath())
+    return posixpath.join(path, self.xcode_settings.GetExecutablePath())
 
 
   def ComputeDeps(self, spec):
@@ -1506,6 +1507,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
           self.WriteList(self.xcode_settings.GetLibtoolflags(configname),
                          'LIBTOOLFLAGS_%s' % configname)
       libraries = spec.get('libraries')
+      self.output_binary = self.output_binary.replace("\\", "/")
       if libraries:
         # Remove duplicate entries
         libraries = gyp.common.uniquer(libraries)
@@ -1699,6 +1701,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
     values = ''
     if value_list:
       value_list = [quoter(prefix + l) for l in value_list]
+      value_list = [l.replace("\\", "/") for l in value_list]
       values = ' \\\n\t' + ' \\\n\t'.join(value_list)
     self.fp.write('%s :=%s\n\n' % (variable, values))
 
@@ -1724,6 +1727,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
     # spaces with ? because escaping doesn't work with make's $(sort) and
     # other functions.
     outputs = [QuoteSpaces(o, SPACE_REPLACEMENT) for o in outputs]
+    outputs = [o.replace("\\", "/") for o in outputs]
     self.WriteLn('all_deps += %s' % ' '.join(outputs))
 
 
@@ -1745,6 +1749,8 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
     """
     outputs = [QuoteSpaces(o) for o in outputs]
     inputs = map(QuoteSpaces, inputs)
+
+    inputs = [i.replace("\\", "/") for i in inputs]
 
     if comment:
       self.WriteLn('# ' + comment)
@@ -1932,7 +1938,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
       # path too aggressively if it features '..'. However it's still
       # important to strip trailing slashes.
       return path.rstrip('/')
-    return os.path.normpath(os.path.join(self.path, path))
+    return os.path.normpath(posixpath.join(self.path, path))
 
 
   def ExpandInputRoot(self, template, expansion, dirname):
@@ -2052,7 +2058,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
       'flock_index': 1,
       'link_commands': LINK_COMMANDS_LINUX,
       'extra_commands': '',
-      'srcdir': srcdir,
+      'srcdir': srcdir.replace("\\", "/"),
       'copy_archive_args': copy_archive_arguments,
       'makedep_args': makedep_arguments,
     }

@@ -197,8 +197,7 @@ class AndroidMkWriter(object):
     # TODO: doesn't pull in things through transitive link deps; needed?
     target_dependencies = [x[1] for x in deps if x[0] == 'path']
     self.WriteLn('# Make sure our deps are built first.')
-    self.WriteList(target_dependencies, 'GYP_TARGET_DEPENDENCIES',
-                   local_pathify=True)
+    self.WriteList(target_dependencies, 'GYP_TARGET_DEPENDENCIES')
 
     # Actions must come first, since they can generate more OBJs for use below.
     if 'actions' in spec:
@@ -212,7 +211,7 @@ class AndroidMkWriter(object):
       self.WriteCopies(spec['copies'], extra_outputs)
 
     # GYP generated outputs.
-    self.WriteList(extra_outputs, 'GYP_GENERATED_OUTPUTS', local_pathify=True)
+    self.WriteList(extra_outputs, 'GYP_GENERATED_OUTPUTS')
 
     # Set LOCAL_ADDITIONAL_DEPENDENCIES so that Android's build rules depend
     # on both our dependency targets and our generated files.
@@ -553,7 +552,7 @@ class AndroidMkWriter(object):
       #elif IsCPPExtension(ext) and ext != local_cpp_extension:
       #  extra_sources.append(source)
       else:
-        local_files.append(posixpath.normpath(os.path.join(self.path, source)))
+        local_files.append(posixpath.normpath(posixpath.join(self.path, source)))
 
     # For any generated source, if it is coming from the shared intermediate
     # directory then we add a Make rule to copy them to the local intermediate
@@ -701,7 +700,7 @@ class AndroidMkWriter(object):
                 % (self.android_class, self.android_module))
 
     assert spec.get('product_dir') is None # TODO: not supported?
-    return os.path.join(path, self.ComputeOutputBasename(spec))
+    return posixpath.join(path, self.ComputeOutputBasename(spec))
 
   def NormalizeIncludePaths(self, include_paths):
     """ Normalize include_paths.
@@ -971,7 +970,7 @@ class AndroidMkWriter(object):
 def PerformBuild(data, configurations, params):
   # The android backend only supports the default configuration.
   options = params['options']
-  makefile = os.path.abspath(os.path.join(options.toplevel_dir,
+  makefile = os.path.abspath(posixpath.join(options.toplevel_dir,
                                           'GypAndroid.mk'))
   env = dict(os.environ)
   env['ONE_SHOT_MAKEFILE'] = makefile
@@ -999,7 +998,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
     base_path = gyp.common.RelativePath(os.path.dirname(build_file),
                                         options.depth)
     # We write the file in the base_path directory.
-    output_file = os.path.join(options.depth, base_path, base_name)
+    output_file = posixpath.join(options.depth, base_path, base_name)
     assert not options.generator_output, (
         'The Android backend does not support options.generator_output.')
     base_path = gyp.common.RelativePath(os.path.dirname(build_file),
@@ -1021,7 +1020,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
 
   srcdir = '.'
   makefile_name = 'GypAndroid' + options.suffix + '.mk'
-  makefile_path = os.path.join(options.toplevel_dir, makefile_name)
+  makefile_path = posixpath.join(options.toplevel_dir, makefile_name)
   assert not options.generator_output, (
       'The Android backend does not support options.generator_output.')
   gyp.common.EnsureDirExists(makefile_path)
