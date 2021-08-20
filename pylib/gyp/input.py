@@ -128,6 +128,7 @@ base_non_configuration_keys = [
   # Sections that can be found inside targets or configurations, but that
   # should not be propagated from targets into their configurations.
   'variables',
+  'android_extends',
 ]
 non_configuration_keys = []
 
