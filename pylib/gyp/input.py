@@ -156,6 +156,42 @@ multiple_toolsets = False
 # }
 generator_filelist_paths = None
 
+
+def collectWildcardFiles(build_file_path, build_file_data):
+  build_file_dir = os.getcwd() +  "/" + build_file_path
+  build_file_dir = build_file_dir.replace("\\", "/")
+  pos = build_file_dir.rfind("/") 
+  if pos != -1:
+    build_file_dir = build_file_dir[0:pos]  
+  else:
+    build_file_dir = "." 
+
+  if 'targets' in build_file_data: 
+      for t in build_file_data['targets']:
+          wildcardfiles = []
+          target_wildcardfiles = []
+          sources = t['sources']
+          for s in sources:
+            wildcard = s
+            result = s.rfind("/") 
+            if result != -1:
+              wildcard = s[result + 1:]
+              
+            if wildcard.find("*") != -1:
+              wildcardfiles.append(s) 
+              s_dir = build_file_dir + "/" + s[0:result]
+              s_files = os.listdir(s_dir)
+              wildcard = wildcard.replace(".", "\.")
+              wildcard = r"." + wildcard
+              pattern = re.compile(wildcard)
+              for f in s_files:
+                if pattern.match(f):
+                  target_wildcardfile = s[0:result] + "/" + f 
+                  target_wildcardfiles.append(target_wildcardfile) 
+          for w in wildcardfiles: 
+            sources.remove(w)
+          sources.extend(target_wildcardfiles)
+
 def GetIncludedBuildFiles(build_file_path, aux_data, included=None):
   """Return a list of all build files included into build_file_path.
 
@@ -264,6 +300,8 @@ def LoadOneBuildFile(build_file_path, data, aux_data, includes,
 
   data[build_file_path] = build_file_data
   aux_data[build_file_path] = {}
+
+  collectWildcardFiles(build_file_path, build_file_data)
 
   # Scan for includes and merge them in.
   if ('skip_includes' not in build_file_data or
