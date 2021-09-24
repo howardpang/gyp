@@ -3191,7 +3191,7 @@ def _VerifySourcesExist(sources, root_dir):
       missing_sources.extend(_VerifySourcesExist(source.contents, root_dir))
     else:
       if '$' not in source:
-        full_path = os.path.join(root_dir, source)
+        full_path = os.path.join(root_dir, source).replace("\\", "/")
         if not os.path.exists(full_path):
           missing_sources.append(full_path)
   return missing_sources
