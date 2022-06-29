@@ -1405,11 +1405,11 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
     """
     assert not self.is_mac_bundle
 
-    path = os.path.join('$(obj).' + self.toolset, self.path)
+    path = posixpath.join('$(obj).' + self.toolset, self.path)
     if self.type == 'executable' or self._InstallImmediately():
       path = '$(builddir)'
     path = spec.get('product_dir', path)
-    return os.path.join(path, self.ComputeOutputBasename(spec))
+    return posixpath.join(path, self.ComputeOutputBasename(spec))
 
 
   def ComputeMacBundleOutput(self, spec):
