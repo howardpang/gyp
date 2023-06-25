@@ -998,7 +998,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
     base_path = gyp.common.RelativePath(os.path.dirname(build_file),
                                         options.depth)
     # We write the file in the base_path directory.
-    output_file = posixpath.join(options.depth, base_path, base_name)
+    output_file = posixpath.join(options.depth, base_name)
     assert not options.generator_output, (
         'The Android backend does not support options.generator_output.')
     base_path = gyp.common.RelativePath(os.path.dirname(build_file),
