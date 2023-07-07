@@ -4,14 +4,13 @@
 
 from __future__ import with_statement
 
+import collections
 import errno
 import filecmp
 import os.path
 import re
 import tempfile
 import sys
-
-from six.moves import collections_abc
 
 
 # A minimal memoizing decorator. It'll blow up if the args aren't immutable,
@@ -495,7 +494,7 @@ def uniquer(seq, idfun=None):
 
 
 # Based on http://code.activestate.com/recipes/576694/.
-class OrderedSet(collections_abc.MutableSet):
+class OrderedSet(collections.MutableSet):
   def __init__(self, iterable=None):
     self.end = end = []
     end += [None, end, end]         # sentinel node for doubly linked list
