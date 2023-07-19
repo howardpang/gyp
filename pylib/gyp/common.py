@@ -11,6 +11,11 @@ import os.path
 import re
 import tempfile
 import sys
+if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+    from collections.abc import MutableSet
+    collections.MutableSet = collections.abc.MutableSet
+else: 
+    from collections import MutableSet
 
 
 # A minimal memoizing decorator. It'll blow up if the args aren't immutable,
