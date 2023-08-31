@@ -535,7 +535,8 @@ class AndroidMkWriter(object):
         local_cpp_extension = ext
         break
     if local_cpp_extension != '.cpp':
-      self.WriteLn('LOCAL_CPP_EXTENSION := %s' % local_cpp_extension)
+      self.WriteLn('LOCAL_CPP_EXTENSION := .cpp')
+      self.WriteLn('LOCAL_CPP_EXTENSION += %s' % local_cpp_extension)
 
     # We need to move any non-generated sources that are coming from the
     # shared intermediate directory out of LOCAL_SRC_FILES and put them
