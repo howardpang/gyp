@@ -129,6 +129,7 @@ base_non_configuration_keys = [
   # should not be propagated from targets into their configurations.
   'variables',
   'android_extends',
+  'cmake_extends',
 ]
 non_configuration_keys = []
 
@@ -1391,6 +1392,11 @@ def BuildTargetsDict(data):
   in the returned dict.  These keys provide access to the target dicts,
   the dicts in the "targets" lists.
   """
+  exclude_targets = []
+
+  for build_file in data['target_build_files']:
+    for target in data[build_file].get('targets!', []):
+      exclude_targets.append(target)
 
   targets = {}
   for build_file in data['target_build_files']:
@@ -1400,7 +1406,8 @@ def BuildTargetsDict(data):
                                                target['toolset'])
       if target_name in targets:
         raise GypError('Duplicate target definitions for ' + target_name)
-      targets[target_name] = target
+      if target['target_name'] not in exclude_targets:
+        targets[target_name] = target
 
   return targets
 

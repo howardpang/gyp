@@ -32,17 +32,18 @@ from __future__ import print_function
 
 import multiprocessing
 import os
+import sys
 import signal
 import string
 import subprocess
 import gyp.common
 import gyp.xcode_emulation
 
-try:
   # maketrans moved to str in python3.
-  _maketrans = string.maketrans
-except NameError:
-  _maketrans = str.maketrans
+if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+    _maketrans = str.maketrans
+else:
+    _maketrans = string.maketrans
 
 generator_default_variables = {
   'EXECUTABLE_PREFIX': '',
@@ -61,7 +62,6 @@ generator_default_variables = {
   'RULE_INPUT_NAME': '${RULE_INPUT_NAME}',
   'RULE_INPUT_ROOT': '${RULE_INPUT_ROOT}',
   'RULE_INPUT_EXT': '${RULE_INPUT_EXT}',
-  'CONFIGURATION_NAME': '${configuration}',
 }
 
 FULL_PATH_VARS = ('${CMAKE_CURRENT_LIST_DIR}', '${builddir}', '${obj}')
@@ -987,7 +987,7 @@ def WriteTarget(namer, qualified_target, target_dicts, build_dir, config_to_use,
 
     # XCode settings
     xcode_settings = config.get('xcode_settings', {})
-    for xcode_setting, xcode_value in xcode_settings.viewitems():
+    for xcode_setting, xcode_value in xcode_settings.items():
       SetTargetProperty(output, cmake_target_name,
                         "XCODE_ATTRIBUTE_%s" % xcode_setting, xcode_value,
                         '' if isinstance(xcode_value, str) else ' ')
@@ -1078,6 +1078,12 @@ def WriteTarget(namer, qualified_target, target_dicts, build_dir, config_to_use,
 
       output.write(')\n')
 
+  if 'cmake_extends' in spec:
+      for line in spec['cmake_extends']:
+        output.write(line)
+        output.write('\n')
+      output.write('')
+
   UnsetVariable(output, 'TOOLSET')
   UnsetVariable(output, 'TARGET')
 
@@ -1099,13 +1105,11 @@ def GenerateOutputForConfig(target_list, target_dicts, data,
 
   # build_dir: relative path from source root to our output files.
   # e.g. "out/Debug"
-  build_dir = os.path.normpath(os.path.join(generator_dir,
-                                            output_dir,
-                                            config_to_use))
+  build_dir = generator_dir
 
   toplevel_build = os.path.join(options.toplevel_dir, build_dir)
 
-  output_file = os.path.join(toplevel_build, 'CMakeLists.txt')
+  output_file = os.path.join(generator_dir, 'CMakeLists.txt')
   gyp.common.EnsureDirExists(output_file)
 
   output = open(output_file, 'w')
@@ -1117,7 +1121,7 @@ def GenerateOutputForConfig(target_list, target_dicts, data,
   output.write(project_target)
   output.write(')\n')
 
-  SetVariable(output, 'configuration', config_to_use)
+  #SetVariable(output, 'configuration', config_to_use)
 
   ar = None
   cc = None
@@ -1233,7 +1237,10 @@ def CallGenerateOutputForConfig(arglist):
 
 
 def GenerateOutput(target_list, target_dicts, data, params):
-  user_config = params.get('generator_flags', {}).get('config', None)
+  #user_config = params.get('generator_flags', {}).get('config', None)
+  user_config = "Release"
+
+  options = params['options']
   if user_config:
     GenerateOutputForConfig(target_list, target_dicts, data,
                             params, user_config)
