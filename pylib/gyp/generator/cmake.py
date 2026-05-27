@@ -113,7 +113,7 @@ def NormjoinPathForceCMakeSource(base_path, rel_path):
     return rel_path
   # TODO: do we need to check base_path for absolute variables as well?
   return os.path.join('${CMAKE_CURRENT_LIST_DIR}',
-                      os.path.normpath(os.path.join(base_path, rel_path)))
+                      os.path.normpath(os.path.join(base_path, rel_path))).replace("\\", "/")
 
 
 def NormjoinPath(base_path, rel_path):
@@ -123,8 +123,8 @@ def NormjoinPath(base_path, rel_path):
   Otherwise it is resolved against base_path if relative, then normalized.
   """
   if rel_path.startswith('$') and not rel_path.startswith('${configuration}'):
-    return rel_path
-  return os.path.normpath(os.path.join(base_path, rel_path))
+    return rel_path.replace("\\", "/")
+  return os.path.normpath(os.path.join(base_path, rel_path)).replace("\\", "/")
 
 
 def CMakeStringEscape(a):
@@ -490,7 +490,7 @@ def WriteCopies(target_name, copies, extra_deps, path_to_gyp, output):
     for src in files:
       path = os.path.normpath(src)
       basename = os.path.split(path)[1]
-      dst = os.path.join(destination, basename)
+      dst = os.path.join(destination, basename).replace("\\", "/")
 
       copy = file_copy if os.path.basename(src) else dir_copy
 
@@ -847,7 +847,7 @@ def WriteTarget(namer, qualified_target, target_dicts, build_dir, config_to_use,
                                             options.toplevel_dir)
         target_output_directory = '${obj}.${TOOLSET}'
         target_output_directory = (
-            os.path.join(target_output_directory, base_path))
+            os.path.join(target_output_directory, base_path)).replace("\\", "/")
 
     cmake_target_output_directory = NormjoinPathForceCMakeSource(
                                         path_from_cmakelists_to_gyp,
@@ -896,7 +896,7 @@ def WriteTarget(namer, qualified_target, target_dicts, build_dir, config_to_use,
     # Make the output of this target referenceable as a source.
     cmake_target_output_basename = product_prefix + product_name + product_ext
     cmake_target_output = os.path.join(cmake_target_output_directory,
-                                       cmake_target_output_basename)
+                                       cmake_target_output_basename).replace("\\", "/")
     SetFileProperty(output, cmake_target_output, 'GENERATED', ['TRUE'], '')
 
     # Includes
@@ -1217,7 +1217,7 @@ def PerformBuild(data, configurations, params):
     # e.g. "out/Debug"
     build_dir = os.path.normpath(os.path.join(generator_dir,
                                               output_dir,
-                                              config_name))
+                                              config_name)).replace("\\", "/")
     arguments = ['cmake', '-G', 'Ninja']
     print('Generating [%s]: %s' % (config_name, arguments))
     subprocess.check_call(arguments, cwd=build_dir)
